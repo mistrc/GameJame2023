@@ -6,6 +6,8 @@ import 'package:flame/flame.dart';
 
 import 'utilities/constants.dart';
 
+enum DirectionOfMovement { left, right }
+
 class Character extends PositionComponent {
   final Sprite person;
   final Vector2 centerOfRotation;
@@ -36,5 +38,17 @@ class Character extends PositionComponent {
         size: person.srcSize.scaled(0.3));
 
     super.render(canvas);
+  }
+
+  void move(DirectionOfMovement movement) {
+    switch (movement) {
+      case DirectionOfMovement.left:
+        angle += pi / 8;
+        break;
+
+      case DirectionOfMovement.right:
+        angle -= pi / 8;
+        break;
+    }
   }
 }

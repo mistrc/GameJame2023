@@ -3,12 +3,15 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
+import 'package:flame/input.dart';
 import 'package:flame01/character.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/src/services/keyboard_key.g.dart';
 
 import '../utilities/constants.dart';
 
-class TunnelGame extends FlameGame {
+class TunnelGame extends FlameGame with KeyboardEvents {
   double durationPassed = 0;
   static const transitionDuration = 5.0;
 
@@ -112,4 +115,18 @@ class TunnelGame extends FlameGame {
   Vector2 getTopLeftCornerOfCircleGivenRadius(double radius) => Vector2(
       circleXCoordinate - radius,
       circleYCoordinateConst + (radius * circleYCoordinateCoef));
+
+  @override
+  KeyEventResult onKeyEvent(
+      RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    if (keysPressed.length == 1 && event is RawKeyDownEvent) {
+      final key = keysPressed.first;
+      if (key == LogicalKeyboardKey.arrowLeft) {
+        character.move(DirectionOfMovement.left);
+      } else if (key == LogicalKeyboardKey.arrowRight) {
+        character.move(DirectionOfMovement.right);
+      }
+    }
+    return super.onKeyEvent(event, keysPressed);
+  }
 }
