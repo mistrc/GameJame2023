@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 
-import 'utils/consts.dart';
+import 'utilities/constants.dart';
 
 class Character extends PositionComponent {
   final Sprite person;

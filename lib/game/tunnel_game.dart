@@ -6,7 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flame01/character.dart';
 import 'package:flutter/material.dart';
 
-import 'utils/consts.dart';
+import '../utilities/constants.dart';
 
 class TunnelGame extends FlameGame {
   double durationPassed = 0;
