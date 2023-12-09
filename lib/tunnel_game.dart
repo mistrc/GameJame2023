@@ -1,8 +1,12 @@
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
+import 'package:flame01/character.dart';
 import 'package:flutter/material.dart';
+
+import 'utils/consts.dart';
 
 class TunnelGame extends FlameGame {
   double durationPassed = 0;
@@ -25,10 +29,10 @@ class TunnelGame extends FlameGame {
   /// will not have transitioned far enough when the reset happens after each
   /// transitionDuration has passed
   static const colourSteps = [
-    Color.fromARGB(170, 157, 157, 214),
-    Color.fromARGB(170, 118, 118, 219),
-    Color.fromARGB(170, 77, 77, 221),
-    Color.fromARGB(170, 46, 46, 228),
+    Color.fromARGB(170, 157, 157, 238),
+    Color.fromARGB(170, 118, 118, 238),
+    Color.fromARGB(170, 77, 77, 238),
+    Color.fromARGB(170, 46, 46, 238),
     Color(0xAA0000EE)
   ];
 
@@ -44,17 +48,33 @@ class TunnelGame extends FlameGame {
     CircleComponent()
   ];
 
+  late final Character character; // = Character();
+
   @override
   Future<void> onLoad() async {
+    await Flame.images.load(spriteFileName);
+
     final outerCircle = CircleComponent(radius: radiusSteps.last);
     outerCircle.paint = Paint()..color = colourSteps.last;
-    outerCircle.position = getCirclePositionGivenRadius(radiusSteps.last);
+    outerCircle.position =
+        getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
     add(outerCircle);
 
     onLoadAddTunnelSection(3);
     onLoadAddTunnelSection(2);
     onLoadAddTunnelSection(1);
     onLoadAddTunnelSection(0);
+
+    final centerOfRotationForCharacter =
+        getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
+    centerOfRotationForCharacter
+        .add(Vector2(radiusSteps.last, radiusSteps.last));
+
+    character = Character(
+        centerOfRotation: centerOfRotationForCharacter,
+        radiusToEdge: radiusSteps.last);
+
+    add(character);
   }
 
   void onLoadAddTunnelSection(int index) {
@@ -75,9 +95,6 @@ class TunnelGame extends FlameGame {
     updateTunnelRender(transitionPercentage, 2);
     updateTunnelRender(transitionPercentage, 3);
 
-    debugPrint(
-        '${transitionPercentage.toStringAsFixed(3)}  The aimed for colour ${colourSteps.last} what the colour has got to ${circles.last.paint.color}');
-
     super.update(dt);
   }
 
@@ -88,11 +105,11 @@ class TunnelGame extends FlameGame {
         colourSteps[index], colourSteps[index + 1], transitionPercentage);
 
     circles[index].radius = radius;
-    circles[index].position = getCirclePositionGivenRadius(radius);
+    circles[index].position = getTopLeftCornerOfCircleGivenRadius(radius);
     circles[index].paint.color = color!;
   }
 
-  Vector2 getCirclePositionGivenRadius(double radius) => Vector2(
+  Vector2 getTopLeftCornerOfCircleGivenRadius(double radius) => Vector2(
       circleXCoordinate - radius,
       circleYCoordinateConst + (radius * circleYCoordinateCoef));
 }
