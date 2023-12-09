@@ -86,6 +86,9 @@ class Character extends PositionComponent with CollisionCallbacks {
     /// Don't want the character osculating forever, so applying some damping
     _angularMomentum *= 0.995;
 
+    /// Don't want the character spinning away
+    _angularMomentum = clampDouble(_angularMomentum, -5.5, 5.5);
+
     angle += _angularMomentum * dt;
     super.update(dt);
   }
