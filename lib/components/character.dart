@@ -30,7 +30,7 @@ class Character extends PositionComponent {
         super(position: centerOfRotation, size: Vector2(40, 40));
 
   @override
-  bool get debugMode => true;
+  bool get debugMode => false;
 
   @override
   void render(Canvas canvas) {
