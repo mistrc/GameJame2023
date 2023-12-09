@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -14,7 +15,7 @@ import '../utilities/constants.dart';
 
 class TunnelGame extends FlameGame with KeyboardEvents {
   double durationPassed = 0;
-  static const transitionDuration = 5.0;
+  static const transitionDuration = 2.0;
 
   /// Center each circle at the same point on the x-axis
   static const circleXCoordinate = 500.0;
@@ -33,24 +34,26 @@ class TunnelGame extends FlameGame with KeyboardEvents {
   /// will not have transitioned far enough when the reset happens after each
   /// transitionDuration has passed
   static const colourSteps = [
-    Color.fromARGB(170, 157, 157, 238),
-    Color.fromARGB(170, 118, 118, 238),
-    Color.fromARGB(170, 77, 77, 238),
-    Color.fromARGB(170, 46, 46, 238),
-    Color(0xAA0000EE)
+    Color.fromARGB(255, 210, 210, 150),
+    Color.fromARGB(255, 180, 180, 150),
+    Color.fromARGB(255, 150, 150, 150),
+    Color.fromARGB(255, 120, 120, 150),
+    Color.fromARGB(255, 90, 90, 150),
+    Color.fromARGB(255, 50, 50, 150),
+    Color.fromARGB(255, 0, 0, 150),
   ];
+
+  static const maxCircleRadius = 250.0;
 
   /// The separation between each of these steps is intentionally
   /// larger and larger so that the closer parts of the tunnel
   /// feel like they are moving faster
-  static const radiusSteps = [20.0, 35.0, 65.0, 125.0, 245.0];
+  final radiusSteps = List.generate(colourSteps.length,
+      (index) => maxCircleRadius / (pow(1.7, colourSteps.length - index - 1)));
+  // [20.0, 35.0, 65.0, 125.0, 245.0]
 
-  final circles = [
-    CircleComponent(),
-    CircleComponent(),
-    CircleComponent(),
-    CircleComponent()
-  ];
+  final circles =
+      List.generate(colourSteps.length - 1, (index) => CircleComponent());
 
   late final Character character;
   Obstacle? obstacle;
@@ -65,10 +68,10 @@ class TunnelGame extends FlameGame with KeyboardEvents {
         _getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
     add(outerCircle);
 
-    onLoadAddTunnelSection(3);
-    onLoadAddTunnelSection(2);
-    onLoadAddTunnelSection(1);
-    onLoadAddTunnelSection(0);
+    for (var i = circles.length - 1; i >= 0; i--) {
+      // circles[i].debugMode = true;
+      _onLoadAddTunnelSection(i);
+    }
 
     final initialCenterOfRotation =
         _getTopLeftCornerOfCircleGivenRadius(radiusSteps.first);
@@ -91,7 +94,7 @@ class TunnelGame extends FlameGame with KeyboardEvents {
     add(character);
   }
 
-  void onLoadAddTunnelSection(int index) {
+  void _onLoadAddTunnelSection(int index) {
     circles[index].paint = Paint()..color = colourSteps[index];
     circles[index].radius = radiusSteps[index];
     add(circles[index]);
@@ -104,10 +107,9 @@ class TunnelGame extends FlameGame with KeyboardEvents {
     final transitionPercentage =
         ((durationPassed % transitionDuration) / transitionDuration);
 
-    _updateTunnelRender(transitionPercentage, 0);
-    _updateTunnelRender(transitionPercentage, 1);
-    _updateTunnelRender(transitionPercentage, 2);
-    _updateTunnelRender(transitionPercentage, 3);
+    for (var i = 0; i < circles.length; i++) {
+      _updateTunnelRender(transitionPercentage, i);
+    }
 
     if (null != obstacle && obstacle!.hasFallenOffEdge) {
       remove(obstacle!);
