@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'dart:ui';
 
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flutter/widgets.dart';
 
 import '../utilities/constants.dart';
 
-class Obstacle extends PositionComponent {
+class Obstacle extends PositionComponent with CollisionCallbacks {
   final Sprite _sprite;
   late double currentRadius = _radiusToEdge / 10;
   double currentScaleFactor = _initialScaleFactor;
@@ -19,6 +21,8 @@ class Obstacle extends PositionComponent {
 
   final double _lifetime;
   double ageOfObstacle = 0;
+
+  final RectangleHitbox _hitBox = RectangleHitbox();
 
   Obstacle(
       {required Vector2 initialCenterOfRotation,
@@ -37,14 +41,21 @@ class Obstacle extends PositionComponent {
         super(position: initialCenterOfRotation, size: Vector2(40, 40));
 
   @override
-  bool get debugMode => true;
+  bool get debugMode => false;
 
   @override
   void render(Canvas canvas) {
+    final scaledSpriteSize = _sprite.srcSize.scaled(currentScaleFactor);
+
     _sprite.render(canvas,
         position: Vector2(0, currentRadius),
         anchor: Anchor.bottomCenter,
-        size: _sprite.srcSize.scaled(currentScaleFactor));
+        size: scaledSpriteSize);
+
+    _hitBox
+      ..position = Vector2(
+          0 - scaledSpriteSize.x / 2, currentRadius - scaledSpriteSize.y)
+      ..size = scaledSpriteSize;
 
     super.render(canvas);
   }
@@ -61,6 +72,15 @@ class Obstacle extends PositionComponent {
         _radiusToEdge / 10, _radiusToEdge, percentageOfMovementDone)!;
     currentScaleFactor = lerpDouble(
         _initialScaleFactor, _maxScaleFactor, percentageOfMovementDone)!;
+
+    if (!contains(_hitBox) &&
+        0.28 < currentScaleFactor &&
+        currentScaleFactor < 3.2) {
+      add(_hitBox);
+      _hitBox.debugMode = true;
+    } else if (contains(_hitBox) && currentScaleFactor >= 3.2) {
+      remove(_hitBox);
+    }
 
     position = Vector2(
         lerpDouble(_initialCenterOfRotation.x, _finalCenterOfRotation.x,

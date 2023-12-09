@@ -13,7 +13,7 @@ import 'package:flutter/src/services/keyboard_key.g.dart';
 
 import '../utilities/constants.dart';
 
-class TunnelGame extends FlameGame with KeyboardEvents {
+class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   double durationPassed = 0;
   static const transitionDuration = 2.0;
 
