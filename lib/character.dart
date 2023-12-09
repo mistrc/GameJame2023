@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
+import 'package:flutter/widgets.dart';
 
 import 'utilities/constants.dart';
 
@@ -50,10 +51,17 @@ class Character extends PositionComponent {
     }
   }
 
+  static const gravitationalConstant = 0.1;
+
   @override
   void update(double dt) {
-    angle += angularMomentum * dt;
+    final angleInTunnel = angle % (2 * pi);
+    angularMomentum -= gravitationalConstant * sin(angleInTunnel);
 
+    /// Don't want the character osculating forever, so applying some damping
+    angularMomentum *= 0.995;
+
+    angle += angularMomentum * dt;
     super.update(dt);
   }
 }
