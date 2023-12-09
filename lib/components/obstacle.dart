@@ -22,7 +22,8 @@ class Obstacle extends PositionComponent with CollisionCallbacks {
   final double _lifetime;
   double ageOfObstacle = 0;
 
-  final RectangleHitbox _hitBox = RectangleHitbox();
+  final RectangleHitbox _hitBox =
+      RectangleHitbox(collisionType: CollisionType.passive);
 
   Obstacle(
       {required Vector2 initialCenterOfRotation,
@@ -42,6 +43,13 @@ class Obstacle extends PositionComponent with CollisionCallbacks {
 
   @override
   bool get debugMode => false;
+
+  @override
+  FutureOr<void> onLoad() {
+    add(_hitBox);
+
+    return super.onLoad();
+  }
 
   @override
   void render(Canvas canvas) {
@@ -76,10 +84,9 @@ class Obstacle extends PositionComponent with CollisionCallbacks {
     if (!contains(_hitBox) &&
         0.28 < currentScaleFactor &&
         currentScaleFactor < 3.2) {
-      add(_hitBox);
-      _hitBox.debugMode = true;
+      _hitBox.collisionType = CollisionType.passive;
     } else if (contains(_hitBox) && currentScaleFactor >= 3.2) {
-      remove(_hitBox);
+      _hitBox.collisionType = CollisionType.inactive;
     }
 
     position = Vector2(
