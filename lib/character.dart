@@ -14,7 +14,8 @@ class Character extends PositionComponent {
   final double radiusToEdge;
   static const bufferFromEdge = 10.0;
 
-  double angleOfRotation = 0;
+  /// A measure of how fast the character is moving round the tunnel
+  double angularMomentum = 0;
 
   Character({required this.centerOfRotation, required this.radiusToEdge})
       : person = Sprite(
@@ -29,9 +30,6 @@ class Character extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    canvas.save(); // think this will prevent the whole tunnel from rotating
-    canvas.rotate(angleOfRotation);
-
     person.render(canvas,
         position: Vector2(0, radiusToEdge - bufferFromEdge),
         anchor: Anchor.bottomCenter,
@@ -43,12 +41,19 @@ class Character extends PositionComponent {
   void move(DirectionOfMovement movement) {
     switch (movement) {
       case DirectionOfMovement.left:
-        angle += pi / 8;
+        angularMomentum += pi / 16;
         break;
 
       case DirectionOfMovement.right:
-        angle -= pi / 8;
+        angularMomentum -= pi / 16;
         break;
     }
+  }
+
+  @override
+  void update(double dt) {
+    angle += angularMomentum * dt;
+
+    super.update(dt);
   }
 }

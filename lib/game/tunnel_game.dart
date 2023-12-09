@@ -116,6 +116,8 @@ class TunnelGame extends FlameGame with KeyboardEvents {
       circleXCoordinate - radius,
       circleYCoordinateConst + (radius * circleYCoordinateCoef));
 
+  /// Accepting keyboard input to add a delta push to the character
+  /// in that direction
   @override
   KeyEventResult onKeyEvent(
       RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
