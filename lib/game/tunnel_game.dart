@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:calc/calc.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
@@ -56,7 +57,14 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
       List.generate(colourSteps.length - 1, (index) => CircleComponent());
 
   late final Character character;
-  Obstacle? obstacle;
+
+  /// Maximum number of obstacles will increase as the game goes on
+  int maxNumberOfObstacles = 10;
+  final obstacles = <Obstacle>[];
+
+  /// Using this distribution function to generate the locations of the
+  /// obstacles to be mostly around the bottom of the tunnel
+  final distribution = NormalDistribution(mean: 0, variance: pi / 3);
 
   @override
   Future<void> onLoad() async {
@@ -73,26 +81,29 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
       _onLoadAddTunnelSection(i);
     }
 
-    final initialCenterOfRotation =
-        _getTopLeftCornerOfCircleGivenRadius(radiusSteps.first);
-    initialCenterOfRotation.add(Vector2(radiusSteps.first, radiusSteps.first));
-
-    final finalCenterOfRotation =
-        _getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
-    finalCenterOfRotation.add(Vector2(radiusSteps.last, radiusSteps.last));
-
-    obstacle = Obstacle(
-        initialCenterOfRotation: initialCenterOfRotation,
-        finalCenterOfRotation: finalCenterOfRotation,
-        radiusToEdge: radiusSteps.last,
-        lifetime: circles.length * transitionDuration);
-    add(obstacle!);
-
     character = Character(
         centerOfRotation: finalCenterOfRotation,
         radiusToEdge: radiusSteps.last);
     add(character);
   }
+
+  late final _initialCenterOfRotation = _calcInitialCenterOfRotation();
+  Vector2 _calcInitialCenterOfRotation() {
+    var val = _getTopLeftCornerOfCircleGivenRadius(radiusSteps.first);
+    val.add(Vector2(radiusSteps.first, radiusSteps.first));
+    return val;
+  }
+
+  Vector2 get initialCenterOfRotation => _initialCenterOfRotation;
+
+  late final _finalCenterOfRotation = _calcFinalCenterOfRotation();
+  Vector2 _calcFinalCenterOfRotation() {
+    var val = _getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
+    val.add(Vector2(radiusSteps.last, radiusSteps.last));
+    return val;
+  }
+
+  Vector2 get finalCenterOfRotation => _finalCenterOfRotation;
 
   void _onLoadAddTunnelSection(int index) {
     circles[index].paint = Paint()..color = colourSteps[index];
@@ -111,10 +122,28 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
       _updateTunnelRender(transitionPercentage, i);
     }
 
-    if (null != obstacle && obstacle!.hasFallenOffEdge) {
-      remove(obstacle!);
-      obstacle = null;
+    // Add obstacles, using the normal dist curve to limit how many
+    // come out at the same time, otherwise they will all be grouped in one place
+    if (obstacles.length < maxNumberOfObstacles) {
+      if (distribution.sample() > (pi * 0.8)) {
+        var obstacle = Obstacle(
+            initialCenterOfRotation: initialCenterOfRotation,
+            finalCenterOfRotation: finalCenterOfRotation,
+            radiusToEdge: radiusSteps.last,
+            lifetime: circles.length * transitionDuration);
+        obstacle.angle = distribution.sample();
+        obstacles.add(obstacle);
+        add(obstacle);
+      }
     }
+
+    obstacles.removeWhere((obstacle) {
+      if (obstacle.hasFallenOffEdge) {
+        remove(obstacle);
+        return true;
+      }
+      return false;
+    });
 
     super.update(dt);
   }

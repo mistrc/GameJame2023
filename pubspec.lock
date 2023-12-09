@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  calc:
+    dependency: "direct main"
+    description:
+      name: calc
+      sha256: "5efc8f44d49e9c39221f542f98a4a26929bb371b7e4c6701022e84d9fe520f13"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.1"
   characters:
     dependency: transitive
     description:
