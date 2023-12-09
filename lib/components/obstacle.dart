@@ -9,12 +9,13 @@ import 'package:flutter/widgets.dart';
 import '../utilities/constants.dart';
 
 class Obstacle extends PositionComponent with CollisionCallbacks {
+  static const double _scaleFactor = 0.3;
+
   final Sprite _sprite;
-  late double currentRadius = _radiusToEdge / 10;
-  double currentScaleFactor = _initialScaleFactor;
-  final double _radiusToEdge;
-  static const double _maxScaleFactor = 0.3;
-  static const _initialScaleFactor = 0.03;
+  late double currentRadius = _radiusSteps.first;
+  late double currentScaleFactor =
+      _scaleFactor * _radiusSteps.first / _radiusSteps.last;
+  final List<double> _radiusSteps;
 
   final Vector2 _initialCenterOfRotation;
   final Vector2 _finalCenterOfRotation;
@@ -28,12 +29,12 @@ class Obstacle extends PositionComponent with CollisionCallbacks {
   Obstacle(
       {required Vector2 initialCenterOfRotation,
       required Vector2 finalCenterOfRotation,
-      required double radiusToEdge,
+      required List<double> radiusSteps,
       required double lifetime})
       : _initialCenterOfRotation = initialCenterOfRotation,
         _finalCenterOfRotation = finalCenterOfRotation,
         _lifetime = lifetime,
-        _radiusToEdge = radiusToEdge,
+        _radiusSteps = radiusSteps,
         _sprite = Sprite(
           Flame.images.fromCache(spriteFileName),
           srcPosition: Vector2(973, 14),
@@ -68,24 +69,41 @@ class Obstacle extends PositionComponent with CollisionCallbacks {
     super.render(canvas);
   }
 
-  bool get hasFallenOffEdge => ageOfObstacle > (_lifetime * 1.1);
+  bool get hasFallenOffEdge => currentRadius > (_radiusSteps.last * 1.1);
+
+  /// This moduloValue is ued to ensure that the currentRadius and also
+  /// currentScaleFactor continue to increase past the values of the current
+  /// ring.
+  /// Firstly we need the movement and the expansion to be approx. in time with
+  /// the rings getting bigger, so needs to get faster as we get closer
+  /// Hence using this to take away the right amount to ensure that
+  /// percentageCompleteForRing is set correctly for each ring
+  int moduloValue = 0;
 
   @override
   void update(double dt) {
     ageOfObstacle += dt;
 
-    var percentageOfMovementDone = ageOfObstacle / _lifetime;
+    final percentageOfMovementDone = ageOfObstacle / _lifetime;
 
-    currentRadius = lerpDouble(
-        _radiusToEdge / 10, _radiusToEdge, percentageOfMovementDone)!;
+    final (minRadius, maxRadius) = getLimitsOfRadius();
+
+    final percentageCompleteForRing =
+        (percentageOfMovementDone * (_radiusSteps.length - 1)) - moduloValue;
+
+    currentRadius =
+        lerpDouble(minRadius, maxRadius, percentageCompleteForRing)!;
+
     currentScaleFactor = lerpDouble(
-        _initialScaleFactor, _maxScaleFactor, percentageOfMovementDone)!;
+        _scaleFactor * minRadius / _radiusSteps.last,
+        _scaleFactor * maxRadius / _radiusSteps.last,
+        percentageCompleteForRing)!;
 
-    if (!contains(_hitBox) &&
-        0.28 < currentScaleFactor &&
-        currentScaleFactor < 3.2) {
+    moduloValue += (currentRadius > maxRadius) ? 1 : 0;
+
+    if (0.28 < currentScaleFactor && currentScaleFactor < 0.32) {
       _hitBox.collisionType = CollisionType.passive;
-    } else if (contains(_hitBox) && currentScaleFactor >= 3.2) {
+    } else if (currentScaleFactor >= 0.32) {
       _hitBox.collisionType = CollisionType.inactive;
     }
 
@@ -96,5 +114,24 @@ class Obstacle extends PositionComponent with CollisionCallbacks {
             percentageOfMovementDone)!);
 
     super.update(dt);
+  }
+
+  (double, double) getLimitsOfRadius() {
+    double minRadius = 0;
+    double maxRadius = 0;
+    for (var radius in _radiusSteps) {
+      if (minRadius == maxRadius) {
+        maxRadius = radius;
+      }
+      if (currentRadius >= radius) {
+        minRadius = radius;
+      }
+    }
+
+    if (maxRadius == minRadius) {
+      maxRadius *= scaleFactorBetweenRings;
+    }
+
+    return (minRadius, maxRadius);
   }
 }

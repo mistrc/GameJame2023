@@ -49,8 +49,11 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   /// The separation between each of these steps is intentionally
   /// larger and larger so that the closer parts of the tunnel
   /// feel like they are moving faster
-  final radiusSteps = List.generate(colourSteps.length,
-      (index) => maxCircleRadius / (pow(1.7, colourSteps.length - index - 1)));
+  final radiusSteps = List.generate(
+      colourSteps.length,
+      (index) =>
+          maxCircleRadius /
+          (pow(scaleFactorBetweenRings, colourSteps.length - index - 1)));
   // [20.0, 35.0, 65.0, 125.0, 245.0]
 
   final circles =
@@ -125,11 +128,11 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
     // Add obstacles, using the normal dist curve to limit how many
     // come out at the same time, otherwise they will all be grouped in one place
     if (obstacles.length < maxNumberOfObstacles) {
-      if (distribution.sample() > (pi * 0.8)) {
+      if (distribution.sample() > (pi * 0.85)) {
         var obstacle = Obstacle(
             initialCenterOfRotation: initialCenterOfRotation,
             finalCenterOfRotation: finalCenterOfRotation,
-            radiusToEdge: radiusSteps.last,
+            radiusSteps: radiusSteps,
             lifetime: circles.length * transitionDuration);
         obstacle.angle = distribution.sample();
         obstacles.add(obstacle);
