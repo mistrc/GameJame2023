@@ -5,6 +5,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame01/components/character.dart';
+import 'package:flame01/components/obstacle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/services/keyboard_key.g.dart';
@@ -51,7 +52,8 @@ class TunnelGame extends FlameGame with KeyboardEvents {
     CircleComponent()
   ];
 
-  late final Character character; // = Character();
+  late final Character character;
+  Obstacle? obstacle;
 
   @override
   Future<void> onLoad() async {
@@ -60,7 +62,7 @@ class TunnelGame extends FlameGame with KeyboardEvents {
     final outerCircle = CircleComponent(radius: radiusSteps.last);
     outerCircle.paint = Paint()..color = colourSteps.last;
     outerCircle.position =
-        getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
+        _getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
     add(outerCircle);
 
     onLoadAddTunnelSection(3);
@@ -68,15 +70,24 @@ class TunnelGame extends FlameGame with KeyboardEvents {
     onLoadAddTunnelSection(1);
     onLoadAddTunnelSection(0);
 
-    final centerOfRotationForCharacter =
-        getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
-    centerOfRotationForCharacter
-        .add(Vector2(radiusSteps.last, radiusSteps.last));
+    final initialCenterOfRotation =
+        _getTopLeftCornerOfCircleGivenRadius(radiusSteps.first);
+    initialCenterOfRotation.add(Vector2(radiusSteps.first, radiusSteps.first));
+
+    final finalCenterOfRotation =
+        _getTopLeftCornerOfCircleGivenRadius(radiusSteps.last);
+    finalCenterOfRotation.add(Vector2(radiusSteps.last, radiusSteps.last));
+
+    obstacle = Obstacle(
+        initialCenterOfRotation: initialCenterOfRotation,
+        finalCenterOfRotation: finalCenterOfRotation,
+        radiusToEdge: radiusSteps.last,
+        lifetime: circles.length * transitionDuration);
+    add(obstacle!);
 
     character = Character(
-        centerOfRotation: centerOfRotationForCharacter,
+        centerOfRotation: finalCenterOfRotation,
         radiusToEdge: radiusSteps.last);
-
     add(character);
   }
 
@@ -93,26 +104,31 @@ class TunnelGame extends FlameGame with KeyboardEvents {
     final transitionPercentage =
         ((durationPassed % transitionDuration) / transitionDuration);
 
-    updateTunnelRender(transitionPercentage, 0);
-    updateTunnelRender(transitionPercentage, 1);
-    updateTunnelRender(transitionPercentage, 2);
-    updateTunnelRender(transitionPercentage, 3);
+    _updateTunnelRender(transitionPercentage, 0);
+    _updateTunnelRender(transitionPercentage, 1);
+    _updateTunnelRender(transitionPercentage, 2);
+    _updateTunnelRender(transitionPercentage, 3);
+
+    if (null != obstacle && obstacle!.hasFallenOffEdge) {
+      remove(obstacle!);
+      obstacle = null;
+    }
 
     super.update(dt);
   }
 
-  void updateTunnelRender(double transitionPercentage, int index) {
+  void _updateTunnelRender(double transitionPercentage, int index) {
     final radius = lerpDouble(
         radiusSteps[index], radiusSteps[index + 1], transitionPercentage)!;
     final color = Color.lerp(
         colourSteps[index], colourSteps[index + 1], transitionPercentage);
 
     circles[index].radius = radius;
-    circles[index].position = getTopLeftCornerOfCircleGivenRadius(radius);
+    circles[index].position = _getTopLeftCornerOfCircleGivenRadius(radius);
     circles[index].paint.color = color!;
   }
 
-  Vector2 getTopLeftCornerOfCircleGivenRadius(double radius) => Vector2(
+  Vector2 _getTopLeftCornerOfCircleGivenRadius(double radius) => Vector2(
       circleXCoordinate - radius,
       circleYCoordinateConst + (radius * circleYCoordinateCoef));
 
