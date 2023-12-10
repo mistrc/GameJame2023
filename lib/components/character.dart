@@ -5,7 +5,7 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
-import 'package:flame01/components/fire.dart';
+import 'package:flame01/components/power_up.dart';
 import 'package:flame01/game/tunnel_game.dart';
 import 'package:flutter/widgets.dart';
 
@@ -100,7 +100,7 @@ class Character extends PositionComponent
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     if (other is Obstacle) {
       debugPrint('It is all over, I have died');
-    } else if (other is Fire) {
+    } else if (other is PowerUp) {
       game.hitPowerUp(other);
     }
 

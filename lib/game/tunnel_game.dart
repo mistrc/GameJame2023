@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/services/keyboard_key.g.dart';
 
-import '../components/fire.dart';
+import '../components/power_up.dart';
 import '../utilities/constants.dart';
 
 class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
@@ -64,10 +64,12 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
 
   /// Maximum number of obstacles will increase as the game goes on
   int maxNumberOfObstacles = 10;
+  double likelihoodOfGettingObstacle = 0.85;
   final _obstacles = <Obstacle>[];
 
   int maxNumberOfPowerUps = 3;
-  final _powerUps = <Fire>[];
+  double likelihoodOfGettingPowerUp = 0.88;
+  final _powerUps = <PowerUp>[];
 
   /// Using this distribution function to generate the locations of the
   /// obstacles to be mostly around the bottom of the tunnel
@@ -76,7 +78,7 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   /// ----------------- ONLOAD ------------------
   @override
   Future<void> onLoad() async {
-    await Flame.images.loadAll([spriteFileName, fireSpriteFile]);
+    await Flame.images.loadAll([spriteFileName, fireSpriteFile, iceSpriteFile]);
 
     final outerCircle = CircleComponent(radius: radiusSteps.last);
     outerCircle.paint = Paint()..color = colourSteps.last;
@@ -132,7 +134,7 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
     // Add obstacles, using the normal dist curve to limit how many
     // come out at the same time, otherwise they will all be grouped in one place
     if (_obstacles.length < maxNumberOfObstacles) {
-      if (distribution.sample() > (pi * 0.85)) {
+      if (distribution.sample() > (pi * likelihoodOfGettingObstacle)) {
         final obstacle = Obstacle(
             initialCenterOfRotation: initialCenterOfRotation,
             finalCenterOfRotation: finalCenterOfRotation,
@@ -156,7 +158,7 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
     // come out at the same time, otherwise they will all be grouped in one place
     if (_powerUps.length < maxNumberOfPowerUps) {
       if (distribution.sample() > (pi * 0.88)) {
-        final fire = Fire(
+        final fire = PowerUp(
             initialCenterOfRotation: initialCenterOfRotation,
             finalCenterOfRotation: finalCenterOfRotation,
             radiusSteps: radiusSteps,
@@ -210,8 +212,38 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
     return super.onKeyEvent(event, keysPressed);
   }
 
-  void hitPowerUp(Fire powerUp) {
-    transitionDuration *= 0.95;
+  void hitPowerUp(PowerUp powerUp) {
+    // Yes I know that (0.95 * 1.05) != 1
+    switch (powerUp.type) {
+      case PowerUpType.fire:
+        transitionDuration *= 0.95;
+        break;
+
+      case PowerUpType.ice:
+        transitionDuration *= 1.05;
+        break;
+    }
+
+    debugPrint('transitionInterval is now $transitionDuration');
+
+    // As animation gets faster, the number of times that update is called decreases
+    // so need to compensate by making it more likely that and object will appear
+    if (transitionDuration < 1.8) {
+      likelihoodOfGettingObstacle = 0.8;
+      likelihoodOfGettingPowerUp = 0.85;
+    } else if (transitionDuration < 1.5) {
+      likelihoodOfGettingObstacle = 0.75;
+      likelihoodOfGettingPowerUp = 0.82;
+    } else if (transitionDuration < 1.2) {
+      likelihoodOfGettingObstacle = 0.7;
+      likelihoodOfGettingPowerUp = 0.79;
+    } else if (transitionDuration < 0.9) {
+      likelihoodOfGettingObstacle = 0.4;
+      likelihoodOfGettingPowerUp = 0.76;
+    } else {
+      likelihoodOfGettingObstacle = 0.85;
+      likelihoodOfGettingPowerUp = 0.88;
+    }
 
     _powerUps.remove(powerUp);
     remove(powerUp);

@@ -52,3 +52,4 @@ controlling the overall game state, rules, and progression.
 # Image attribution
 <a href="https://www.freepik.com/free-vector/gunshot-animation-black-background-cartoon-illustration-set-orange-gun-flashes-with-fire-smoke-explosive-effect-bullet-trace-explosion-weapon-blast-burst-concept_29119192.htm#query=fire%20sprite&position=9&from_view=keyword&track=ais&uuid=88814d0c-68e9-4375-9ea6-21129edeb660">Image by pch.vector</a> on Freepik
 
+Image by <a href="https://www.freepik.com/free-vector/iceberg-collection-nature-concept_9891956.htm#query=Ice%20spritesheet&position=3&from_view=search&track=ais&uuid=fa9e50a3-b312-4f9f-8a86-6eda6a628126">Freepik</a>
