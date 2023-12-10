@@ -5,6 +5,8 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
+import 'package:flame01/components/fire.dart';
+import 'package:flame01/game/tunnel_game.dart';
 import 'package:flutter/widgets.dart';
 
 import '../utilities/constants.dart';
@@ -12,7 +14,8 @@ import 'obstacle.dart';
 
 enum DirectionOfMovement { left, right }
 
-class Character extends PositionComponent with CollisionCallbacks {
+class Character extends PositionComponent
+    with CollisionCallbacks, HasGameReference<TunnelGame> {
   final Sprite _person;
   final double _radiusToEdge;
   static const _bufferFromEdge = 10.0;
@@ -44,7 +47,7 @@ class Character extends PositionComponent with CollisionCallbacks {
   @override
   FutureOr<void> onLoad() {
     add(_hitBox);
-    _hitBox.debugMode = true;
+    _hitBox.debugMode = false;
 
     return super.onLoad();
   }
@@ -96,7 +99,9 @@ class Character extends PositionComponent with CollisionCallbacks {
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     if (other is Obstacle) {
-      debugPrint('It i all over, I have died');
+      debugPrint('It is all over, I have died');
+    } else if (other is Fire) {
+      game.hitPowerUp(other);
     }
 
     super.onCollision(intersectionPoints, other);

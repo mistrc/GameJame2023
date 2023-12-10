@@ -11,7 +11,7 @@ import '../utilities/constants.dart';
 
 class Fire extends SpriteAnimationComponent with CollisionCallbacks {
   final RectangleHitbox _hitBox =
-      RectangleHitbox(collisionType: CollisionType.passive);
+      RectangleHitbox(collisionType: CollisionType.inactive);
   static const frameInterval = 0.1;
 
   // del this
@@ -81,13 +81,13 @@ class Fire extends SpriteAnimationComponent with CollisionCallbacks {
         ]));
 
     add(_hitBox);
-    _hitBox.debugMode = true;
+    // _hitBox.debugMode = true;
 
     return super.onLoad();
   }
 
   @override
-  bool get debugMode => true;
+  bool get debugMode => false;
 
   Fire({
     required Vector2 initialCenterOfRotation,
@@ -150,6 +150,13 @@ class Fire extends SpriteAnimationComponent with CollisionCallbacks {
         percentageCompleteForRing)!;
 
     size = Vector2.all(sizeDimension);
+
+    if ((0.9 * _dimensions) < sizeDimension &&
+        sizeDimension < (1.1 * _dimensions)) {
+      _hitBox.collisionType = CollisionType.passive;
+    } else if (sizeDimension >= (1.1 * _dimensions)) {
+      _hitBox.collisionType = CollisionType.inactive;
+    }
 
     super.update(dt);
   }

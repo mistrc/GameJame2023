@@ -17,7 +17,7 @@ import '../utilities/constants.dart';
 
 class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   double durationPassed = 0;
-  static const transitionDuration = 2.0;
+  double transitionDuration = 2.0;
 
   /// Center each circle at the same point on the x-axis
   static const circleXCoordinate = 500.0;
@@ -208,5 +208,12 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
       }
     }
     return super.onKeyEvent(event, keysPressed);
+  }
+
+  void hitPowerUp(Fire powerUp) {
+    transitionDuration *= 0.95;
+
+    _powerUps.remove(powerUp);
+    remove(powerUp);
   }
 }
