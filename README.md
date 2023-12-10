@@ -18,6 +18,9 @@ Also in terms of the constraint, the game interface does not have any text that 
 ## What was not complete
 * Image for obstacles are just placeholders
 * Image for main character was meant to be a skater but could not find any where the skater was going away
+* Speedometer has not been implemented, it was meant to show how fast you are going down the tunnel
+* Progress indicator is wanted to show how far down the course you have gone
+* Timer per "section" is still needed to cause people to try to go faster
 * The game has not been tuned in terms of the physics
 * The game has not been tuned for areas when hit zones become active as objects pass so that still feels a bit janky
 * A whole load of niceties like flashing a colour around the border when powerups are collected
