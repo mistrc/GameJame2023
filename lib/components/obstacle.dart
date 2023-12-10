@@ -24,7 +24,7 @@ class Obstacle extends PositionComponent with CollisionCallbacks {
   double ageOfObstacle = 0;
 
   final RectangleHitbox _hitBox =
-      RectangleHitbox(collisionType: CollisionType.passive);
+      RectangleHitbox(collisionType: CollisionType.inactive);
 
   Obstacle(
       {required Vector2 initialCenterOfRotation,
