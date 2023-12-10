@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
-import 'package:flutter/widgets.dart';
 
 import '../utilities/constants.dart';
 

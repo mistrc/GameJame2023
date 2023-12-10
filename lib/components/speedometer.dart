@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,7 @@ class Speedometer extends PositionComponent {
   final paintWhiteWithWidth = Paint()
     ..color = Colors.white
     ..strokeWidth = 10;
-  final paintBlue = Paint()..color = Color.fromARGB(255, 50, 50, 150);
+  final paintBlue = Paint()..color = const Color.fromARGB(255, 50, 50, 150);
   final paintOrange = Paint()
     ..color = Colors.orange
     ..strokeWidth = 5;

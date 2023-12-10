@@ -1,19 +1,15 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:calc/calc.dart';
 import 'package:flame/components.dart';
-import 'package:flame/experimental.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
-import 'package:flame/widgets.dart';
 import 'package:flame01/components/character.dart';
 import 'package:flame01/components/obstacle.dart';
-import 'package:flame01/components/speedo.dart';
+import 'package:flame01/components/speedometer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/src/services/keyboard_key.g.dart';
 
 import '../components/arrow_based_controller.dart';
 import '../components/power_up.dart';
@@ -81,7 +77,7 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
 
   @override
   Color backgroundColor() {
-    return Color.fromARGB(255, 50, 50, 150);
+    return const Color.fromARGB(255, 50, 50, 150);
   }
 
   /// ----------------- ONLOAD ------------------

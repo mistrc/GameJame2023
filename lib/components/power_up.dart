@@ -130,7 +130,7 @@ class PowerUp extends SpriteAnimationComponent with CollisionCallbacks {
     if (type == PowerUpType.ice) {
       // Before anyone complains, I know the below are single frame animations
       // i.e. still images, but really the rest of this code works so
-      // I do not want to reimpl it for PositionComponent et al
+      // I do not want to reimplement it for PositionComponent et al
       switch (Random().nextInt(8)) {
         case 0:
           return SpriteAnimation.fromFrameData(

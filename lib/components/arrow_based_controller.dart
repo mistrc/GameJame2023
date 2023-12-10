@@ -1,11 +1,6 @@
-import 'dart:async';
-
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flame/flame.dart';
-import 'package:flame/widgets.dart';
 import 'package:flame01/components/character.dart';
-import 'package:flame01/utilities/constants.dart';
 import 'package:flutter/widgets.dart';
 
 class ArrowBasedController extends PositionComponent with TapCallbacks {
