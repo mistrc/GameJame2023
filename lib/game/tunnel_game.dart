@@ -7,6 +7,7 @@ import 'package:flame/experimental.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
+import 'package:flame/widgets.dart';
 import 'package:flame01/components/character.dart';
 import 'package:flame01/components/obstacle.dart';
 import 'package:flame01/components/speedo.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/services/keyboard_key.g.dart';
 
+import '../components/arrow_based_controller.dart';
 import '../components/power_up.dart';
 import '../utilities/constants.dart';
 
@@ -85,7 +87,13 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   /// ----------------- ONLOAD ------------------
   @override
   Future<void> onLoad() async {
-    await Flame.images.loadAll([spriteFileName, fireSpriteFile, iceSpriteFile]);
+    await Flame.images.loadAll([
+      spriteFileName,
+      fireSpriteFile,
+      iceSpriteFile,
+      leftArrowFile,
+      rightArrowFile
+    ]);
 
     final outerCircle = CircleComponent(radius: radiusSteps.last);
     outerCircle.paint = Paint()..color = colourSteps.last;
@@ -103,6 +111,28 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
     add(character);
 
     add(Speedometer(position: Vector2(800, 200)));
+
+    final moveLeft = ArrowBasedController(
+        character: character,
+        sprite: Sprite(
+          Flame.images.fromCache(leftArrowFile),
+          srcPosition: Vector2(117, 111),
+          srcSize: Vector2(376, 243),
+        ),
+        direction: DirectionOfMovement.left,
+        position: Vector2(350, 550));
+    add(moveLeft);
+
+    final moveRight = ArrowBasedController(
+        character: character,
+        sprite: Sprite(
+          Flame.images.fromCache(rightArrowFile),
+          srcPosition: Vector2(268, 251),
+          srcSize: Vector2(376, 246),
+        ),
+        direction: DirectionOfMovement.right,
+        position: Vector2(530, 550));
+    add(moveRight);
   }
 
   late final _initialCenterOfRotation = _calcInitialCenterOfRotation();
