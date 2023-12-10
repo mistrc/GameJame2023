@@ -6,6 +6,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame01/components/obstacle.dart';
+import 'package:flame01/components/restart.dart';
 import 'package:flame01/components/speedometer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,9 +18,11 @@ import '../utilities/constants.dart';
 
 class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   double durationPassed = 0;
-  double transitionDuration = 2.0;
+  double transitionDuration = 1.8;
 
-  int numberOfLives = 5;
+  int _numberOfLives = 5;
+  late final RestartGame _restartGame;
+  late final Sprite _catImage;
 
   /// Center each circle at the same point on the x-axis
   static const circleXCoordinate = 500.0;
@@ -77,6 +80,8 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   /// obstacles to be mostly around the bottom of the tunnel
   final distribution = NormalDistribution(mean: 0, variance: pi / 3);
 
+  bool get isStillAlive => _numberOfLives > 0;
+
   @override
   Color backgroundColor() {
     return const Color.fromARGB(255, 50, 50, 150);
@@ -92,6 +97,7 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
       leftArrowFile,
       rightArrowFile,
       catMovementFile,
+      restartFile,
     ]);
 
     final outerCircle = CircleComponent(radius: radiusSteps.last);
@@ -132,6 +138,13 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
         direction: DirectionOfMovement.right,
         position: Vector2(530, 550));
     add(moveRight);
+
+    _restartGame = RestartGame();
+    _catImage = Sprite(
+      Flame.images.fromCache(catMovementFile),
+      srcPosition: Vector2(1644, 146),
+      srcSize: Vector2(349, 252),
+    );
   }
 
   late final _initialCenterOfRotation = _calcInitialCenterOfRotation();
@@ -160,61 +173,65 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
 
   @override
   void update(double dt) {
-    durationPassed += dt;
+    if (_numberOfLives > 0) {
+      durationPassed += dt;
 
-    final transitionPercentage =
-        ((durationPassed % transitionDuration) / transitionDuration);
+      final transitionPercentage =
+          ((durationPassed % transitionDuration) / transitionDuration);
 
-    for (var i = 0; i < circles.length; i++) {
-      _updateTunnelRender(transitionPercentage, i);
+      for (var i = 0; i < circles.length; i++) {
+        _updateTunnelRender(transitionPercentage, i);
+      }
+
+      // Add obstacles, using the normal dist curve to limit how many
+      // come out at the same time, otherwise they will all be grouped in one place
+      if (_obstacles.length < maxNumberOfObstacles) {
+        if (distribution.sample() > (pi * likelihoodOfGettingObstacle)) {
+          final obstacle = Obstacle(
+              initialCenterOfRotation: initialCenterOfRotation,
+              finalCenterOfRotation: finalCenterOfRotation,
+              radiusSteps: radiusSteps,
+              lifetime: circles.length * transitionDuration);
+          obstacle.angle = distribution.sample();
+          _obstacles.add(obstacle);
+          add(obstacle);
+        }
+      }
+
+      _obstacles.removeWhere((obstacle) {
+        if (obstacle.hasFallenOffEdge) {
+          remove(obstacle);
+          return true;
+        }
+        return false;
+      });
+
+      // Add powerUps, using the normal dist curve to limit how many
+      // come out at the same time, otherwise they will all be grouped in one place
+      if (_powerUps.length < maxNumberOfPowerUps) {
+        if (distribution.sample() > (pi * 0.88)) {
+          final fire = PowerUp(
+              initialCenterOfRotation: initialCenterOfRotation,
+              finalCenterOfRotation: finalCenterOfRotation,
+              radiusSteps: radiusSteps,
+              lifetime: circles.length * transitionDuration)
+            ..anchor = Anchor.bottomCenter
+            ..angle = distribution.sample();
+          _powerUps.add(fire);
+          add(fire);
+        }
+      }
+
+      _powerUps.removeWhere((powerUp) {
+        if (powerUp.hasFallenOffEdge) {
+          remove(powerUp);
+          return true;
+        }
+        return false;
+      });
+    } else {
+      add(_restartGame);
     }
-
-    // Add obstacles, using the normal dist curve to limit how many
-    // come out at the same time, otherwise they will all be grouped in one place
-    if (_obstacles.length < maxNumberOfObstacles) {
-      if (distribution.sample() > (pi * likelihoodOfGettingObstacle)) {
-        final obstacle = Obstacle(
-            initialCenterOfRotation: initialCenterOfRotation,
-            finalCenterOfRotation: finalCenterOfRotation,
-            radiusSteps: radiusSteps,
-            lifetime: circles.length * transitionDuration);
-        obstacle.angle = distribution.sample();
-        _obstacles.add(obstacle);
-        add(obstacle);
-      }
-    }
-
-    _obstacles.removeWhere((obstacle) {
-      if (obstacle.hasFallenOffEdge) {
-        remove(obstacle);
-        return true;
-      }
-      return false;
-    });
-
-    // Add powerUps, using the normal dist curve to limit how many
-    // come out at the same time, otherwise they will all be grouped in one place
-    if (_powerUps.length < maxNumberOfPowerUps) {
-      if (distribution.sample() > (pi * 0.88)) {
-        final fire = PowerUp(
-            initialCenterOfRotation: initialCenterOfRotation,
-            finalCenterOfRotation: finalCenterOfRotation,
-            radiusSteps: radiusSteps,
-            lifetime: circles.length * transitionDuration)
-          ..anchor = Anchor.bottomCenter
-          ..angle = distribution.sample();
-        _powerUps.add(fire);
-        add(fire);
-      }
-    }
-
-    _powerUps.removeWhere((powerUp) {
-      if (powerUp.hasFallenOffEdge) {
-        remove(powerUp);
-        return true;
-      }
-      return false;
-    });
 
     super.update(dt);
   }
@@ -251,18 +268,15 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   }
 
   void hitPowerUp(PowerUp powerUp) {
-    // Yes I know that (0.95 * 1.05) != 1
     switch (powerUp.type) {
       case PowerUpType.fire:
-        transitionDuration *= 0.95;
+        transitionDuration *= 0.9;
         break;
 
       case PowerUpType.ice:
-        transitionDuration *= 1.05;
+        transitionDuration /= 0.9;
         break;
     }
-
-    debugPrint('transitionInterval is now $transitionDuration');
 
     // As animation gets faster, the number of times that update is called decreases
     // so need to compensate by making it more likely that and object will appear
@@ -288,13 +302,32 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   }
 
   void looseLifeBecauseOfObstacle(Obstacle obstacle) {
-    numberOfLives--;
+    _numberOfLives--;
 
     _obstacles.remove(obstacle);
     remove(obstacle);
 
-    if (numberOfLives == 0) {
-      debugPrint('It is all over, I have died');
+    if (_numberOfLives == 0) {
+      removeAll(_obstacles);
+      _obstacles.clear();
+      removeAll(_powerUps);
+      _powerUps.clear();
     }
+  }
+
+  void restart() {
+    _numberOfLives = 5;
+
+    remove(_restartGame);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    for (var i = 0; i < _numberOfLives; i++) {
+      _catImage.render(canvas,
+          position: Vector2(30 + 50 * i.toDouble(), 30), size: Vector2.all(40));
+    }
+
+    super.render(canvas);
   }
 }

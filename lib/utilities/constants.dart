@@ -6,6 +6,7 @@ const iceSpriteFile = 'ice.png';
 const leftArrowFile = 'left.png';
 const rightArrowFile = 'right.png';
 const catMovementFile = 'cat.png';
+const restartFile = 'restart.png';
 
 /// This is used to scale subsequent rings in size
 const scaleFactorBetweenRings = 1.7;

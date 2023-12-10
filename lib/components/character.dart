@@ -7,7 +7,6 @@ import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame01/components/power_up.dart';
 import 'package:flame01/game/tunnel_game.dart';
-import 'package:flutter/widgets.dart';
 
 import '../utilities/constants.dart';
 import 'obstacle.dart';
@@ -44,7 +43,7 @@ class Character extends SpriteAnimationComponent
             size: Vector2(_dimensions, _dimensions));
 
   @override
-  bool get debugMode => true;
+  bool get debugMode => false;
 
   @override
   FutureOr<void> onLoad() {
@@ -79,25 +78,28 @@ class Character extends SpriteAnimationComponent
 
   @override
   void update(double dt) {
-    final angleInTunnel = angle % (2 * pi);
-    _angularMomentum -= _gravitationalConstant * sin(angleInTunnel);
+    if (game.isStillAlive) {
+      final angleInTunnel = angle % (2 * pi);
+      _angularMomentum -= _gravitationalConstant * sin(angleInTunnel);
 
-    /// Don't want the character osculating forever, so applying some damping
-    _angularMomentum *= 0.995;
+      /// Don't want the character osculating forever, so applying some damping
+      _angularMomentum *= 0.995;
 
-    /// Don't want the character spinning away
-    _angularMomentum = clampDouble(_angularMomentum, -5.5, 5.5);
+      /// Don't want the character spinning away
+      _angularMomentum = clampDouble(_angularMomentum, -5.5, 5.5);
 
-    _setAnimationRate();
+      _setAnimationRate();
 
-    angle += _angularMomentum * dt;
+      angle += _angularMomentum * dt;
 
-    final deltaX = (_radiusToEdge - _bufferFromEdge - _dimensions) * sin(angle);
-    final deltaY = (_radiusToEdge - _bufferFromEdge - _dimensions) * cos(angle);
+      final deltaX =
+          (_radiusToEdge - _bufferFromEdge - _dimensions) * sin(angle);
+      final deltaY =
+          (_radiusToEdge - _bufferFromEdge - _dimensions) * cos(angle);
 
-    position =
-        Vector2(_centreOfRotation.x - deltaX, _centreOfRotation.y + deltaY);
-
+      position =
+          Vector2(_centreOfRotation.x - deltaX, _centreOfRotation.y + deltaY);
+    }
     super.update(dt);
   }
 
