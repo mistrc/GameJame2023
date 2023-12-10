@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/services/keyboard_key.g.dart';
 
+import '../components/fire.dart';
 import '../utilities/constants.dart';
 
 class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
@@ -63,15 +64,19 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
 
   /// Maximum number of obstacles will increase as the game goes on
   int maxNumberOfObstacles = 10;
-  final obstacles = <Obstacle>[];
+  final _obstacles = <Obstacle>[];
+
+  int maxNumberOfPowerUps = 3;
+  final _powerUps = <Fire>[];
 
   /// Using this distribution function to generate the locations of the
   /// obstacles to be mostly around the bottom of the tunnel
   final distribution = NormalDistribution(mean: 0, variance: pi / 3);
 
+  /// ----------------- ONLOAD ------------------
   @override
   Future<void> onLoad() async {
-    await Flame.images.load(spriteFileName);
+    await Flame.images.loadAll([spriteFileName, fireSpriteFile]);
 
     final outerCircle = CircleComponent(radius: radiusSteps.last);
     outerCircle.paint = Paint()..color = colourSteps.last;
@@ -80,7 +85,6 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
     add(outerCircle);
 
     for (var i = circles.length - 1; i >= 0; i--) {
-      // circles[i].debugMode = true;
       _onLoadAddTunnelSection(i);
     }
 
@@ -127,22 +131,46 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
 
     // Add obstacles, using the normal dist curve to limit how many
     // come out at the same time, otherwise they will all be grouped in one place
-    if (obstacles.length < maxNumberOfObstacles) {
+    if (_obstacles.length < maxNumberOfObstacles) {
       if (distribution.sample() > (pi * 0.85)) {
-        var obstacle = Obstacle(
+        final obstacle = Obstacle(
             initialCenterOfRotation: initialCenterOfRotation,
             finalCenterOfRotation: finalCenterOfRotation,
             radiusSteps: radiusSteps,
             lifetime: circles.length * transitionDuration);
         obstacle.angle = distribution.sample();
-        obstacles.add(obstacle);
+        _obstacles.add(obstacle);
         add(obstacle);
       }
     }
 
-    obstacles.removeWhere((obstacle) {
+    _obstacles.removeWhere((obstacle) {
       if (obstacle.hasFallenOffEdge) {
         remove(obstacle);
+        return true;
+      }
+      return false;
+    });
+
+    // Add powerUps, using the normal dist curve to limit how many
+    // come out at the same time, otherwise they will all be grouped in one place
+    if (_powerUps.length < maxNumberOfPowerUps) {
+      if (distribution.sample() > (pi * 0.88)) {
+        final fire = Fire(
+            initialCenterOfRotation: initialCenterOfRotation,
+            finalCenterOfRotation: finalCenterOfRotation,
+            radiusSteps: radiusSteps,
+            lifetime: circles.length * transitionDuration)
+          ..anchor = Anchor.bottomCenter
+          ..angle = distribution.sample();
+        _powerUps.add(fire);
+        add(fire);
+      }
+    }
+
+    _powerUps.removeWhere((powerUp) {
+      if (powerUp.hasFallenOffEdge) {
+        remove(powerUp);
         return true;
       }
       return false;

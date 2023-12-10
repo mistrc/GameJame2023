@@ -47,3 +47,8 @@ controlling the overall game state, rules, and progression.
 - A folder for code and classes that provide support and utility functions which don’t fall into the component or screen classifications. 
 - It can contain helper functions, constants, enums, and extensions that are used throughout the project.
 - For example: Assets.dart,Extensions.dart,Constants.dart,...
+
+
+# Image attribution
+<a href="https://www.freepik.com/free-vector/gunshot-animation-black-background-cartoon-illustration-set-orange-gun-flashes-with-fire-smoke-explosive-effect-bullet-trace-explosion-weapon-blast-burst-concept_29119192.htm#query=fire%20sprite&position=9&from_view=keyword&track=ais&uuid=88814d0c-68e9-4375-9ea6-21129edeb660">Image by pch.vector</a> on Freepik
+
