@@ -3,11 +3,13 @@ import 'dart:ui';
 
 import 'package:calc/calc.dart';
 import 'package:flame/components.dart';
+import 'package:flame/experimental.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame01/components/character.dart';
 import 'package:flame01/components/obstacle.dart';
+import 'package:flame01/components/speedo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/services/keyboard_key.g.dart';
@@ -75,6 +77,11 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   /// obstacles to be mostly around the bottom of the tunnel
   final distribution = NormalDistribution(mean: 0, variance: pi / 3);
 
+  @override
+  Color backgroundColor() {
+    return Color.fromARGB(255, 50, 50, 150);
+  }
+
   /// ----------------- ONLOAD ------------------
   @override
   Future<void> onLoad() async {
@@ -94,6 +101,8 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
         centerOfRotation: finalCenterOfRotation,
         radiusToEdge: radiusSteps.last);
     add(character);
+
+    add(Speedometer(position: Vector2(800, 200)));
   }
 
   late final _initialCenterOfRotation = _calcInitialCenterOfRotation();
