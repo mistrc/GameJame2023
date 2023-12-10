@@ -14,9 +14,13 @@ import 'obstacle.dart';
 
 enum DirectionOfMovement { left, right }
 
-class Character extends PositionComponent
+class Character extends SpriteAnimationComponent
     with CollisionCallbacks, HasGameReference<TunnelGame> {
-  final Sprite _person;
+  static const frameInterval = 0.07;
+
+  late final SpriteAnimation _movingLeftAnimation;
+  late final SpriteAnimation _movingRightAnimation;
+
   final double _radiusToEdge;
   static const _bufferFromEdge = 10.0;
 
@@ -30,54 +34,46 @@ class Character extends PositionComponent
 
   static const _dimensions = 40.0;
 
+  final Vector2 _centreOfRotation;
+
   Character({required Vector2 centerOfRotation, required double radiusToEdge})
       : _radiusToEdge = radiusToEdge,
-        _person = Sprite(
-          Flame.images.fromCache(spriteFileName),
-          srcPosition: Vector2(1176, 17),
-          srcSize: Vector2(172, 183),
-        ),
+        _centreOfRotation = centerOfRotation,
         super(
-            position: centerOfRotation,
+            position: centerOfRotation.clone(),
             size: Vector2(_dimensions, _dimensions));
 
   @override
-  bool get debugMode => false;
+  bool get debugMode => true;
 
   @override
   FutureOr<void> onLoad() {
+    _loadSpriteAnimation();
+    animation = _getSpriteAnimation();
+
     add(_hitBox);
     _hitBox.debugMode = false;
 
     return super.onLoad();
   }
 
-  @override
-  void render(Canvas canvas) {
-    final scaledPersonSize = _person.srcSize.scaled(0.3);
-
-    _person.render(canvas,
-        position: Vector2(0, _radiusToEdge - _bufferFromEdge),
-        anchor: Anchor.bottomCenter,
-        size: scaledPersonSize);
-
-    _hitBox
-      ..position = Vector2(0 - scaledPersonSize.x / 2,
-          _radiusToEdge - _bufferFromEdge - scaledPersonSize.y)
-      ..size = scaledPersonSize;
-
-    super.render(canvas);
-  }
-
   void move(DirectionOfMovement movement) {
     switch (movement) {
       case DirectionOfMovement.left:
         _angularMomentum += pi / 16;
+        _setAnimation(_movingLeftAnimation);
         break;
 
       case DirectionOfMovement.right:
         _angularMomentum -= pi / 16;
+        _setAnimation(_movingRightAnimation);
         break;
+    }
+  }
+
+  void _setAnimation(SpriteAnimation sprite) {
+    if (animation != sprite) {
+      animation = sprite;
     }
   }
 
@@ -92,18 +88,111 @@ class Character extends PositionComponent
     /// Don't want the character spinning away
     _angularMomentum = clampDouble(_angularMomentum, -5.5, 5.5);
 
+    _setAnimationRate();
+
     angle += _angularMomentum * dt;
+
+    final deltaX = (_radiusToEdge - _bufferFromEdge - _dimensions) * sin(angle);
+    final deltaY = (_radiusToEdge - _bufferFromEdge - _dimensions) * cos(angle);
+
+    position =
+        Vector2(_centreOfRotation.x - deltaX, _centreOfRotation.y + deltaY);
+
     super.update(dt);
+  }
+
+  void _setAnimationRate() {
+    /// Are we coming to a stop
+    if (0.08 > _angularMomentum && _angularMomentum > -0.08) {
+      animation!.loop = false;
+    } else {
+      animation!.stepTime = 0.1 / _angularMomentum.abs();
+
+      animation!.loop = true;
+      _setAnimation((_angularMomentum > 0
+          ? _movingLeftAnimation
+          : _movingRightAnimation));
+    }
   }
 
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     if (other is Obstacle) {
-      debugPrint('It is all over, I have died');
+      game.looseLifeBecauseOfObstacle(other);
     } else if (other is PowerUp) {
       game.hitPowerUp(other);
     }
 
     super.onCollision(intersectionPoints, other);
+  }
+
+  void _loadSpriteAnimation() {
+    _movingRightAnimation = SpriteAnimation.fromFrameData(
+        Flame.images.fromCache(catMovementFile),
+        SpriteAnimationData([
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(826, 138),
+              srcSize: Vector2(329, 257),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(68, 497),
+              srcSize: Vector2(335, 245),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(445, 490),
+              srcSize: Vector2(343, 252),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(816, 453),
+              srcSize: Vector2(353, 289),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(82, 60),
+              srcSize: Vector2(344, 336),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(444, 143),
+              srcSize: Vector2(358, 252),
+              stepTime: frameInterval),
+        ]));
+
+    _movingLeftAnimation = SpriteAnimation.fromFrameData(
+        Flame.images.fromCache(catMovementFile),
+        SpriteAnimationData([
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(1287, 141),
+              srcSize: Vector2(329, 257),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(2039, 501),
+              srcSize: Vector2(330, 245),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(1654, 462),
+              srcSize: Vector2(343, 284),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(1277, 459),
+              srcSize: Vector2(349, 287),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(2016, 119),
+              srcSize: Vector2(339, 282),
+              stepTime: frameInterval),
+          SpriteAnimationFrameData(
+              srcPosition: Vector2(1644, 146),
+              srcSize: Vector2(349, 252),
+              stepTime: frameInterval),
+        ]));
+  }
+
+  SpriteAnimation _getSpriteAnimation(
+      {DirectionOfMovement direction = DirectionOfMovement.left}) {
+    switch (direction) {
+      case DirectionOfMovement.left:
+        return _movingLeftAnimation;
+      case DirectionOfMovement.right:
+        return _movingRightAnimation;
+    }
   }
 }

@@ -1,7 +1,8 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flame01/components/character.dart';
 import 'package:flutter/widgets.dart';
+
+import 'character.dart';
 
 class ArrowBasedController extends PositionComponent with TapCallbacks {
   final Sprite _sprite;

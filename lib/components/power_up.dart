@@ -39,7 +39,7 @@ class PowerUp extends SpriteAnimationComponent with CollisionCallbacks {
 
   @override
   FutureOr<void> onLoad() {
-    animation = getSpriteAnimation();
+    animation = _getSpriteAnimation();
 
     add(_hitBox);
     // _hitBox.debugMode = true;
@@ -124,7 +124,7 @@ class PowerUp extends SpriteAnimationComponent with CollisionCallbacks {
 
   bool get hasFallenOffEdge => currentRadius > (_radiusSteps.last * 1.1);
 
-  SpriteAnimation? getSpriteAnimation() {
+  SpriteAnimation? _getSpriteAnimation() {
     // TODO it might be better to only create these once
 
     if (type == PowerUpType.ice) {

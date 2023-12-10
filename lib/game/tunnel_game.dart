@@ -5,19 +5,21 @@ import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
-import 'package:flame01/components/character.dart';
 import 'package:flame01/components/obstacle.dart';
 import 'package:flame01/components/speedometer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../components/arrow_based_controller.dart';
+import '../components/character.dart';
 import '../components/power_up.dart';
 import '../utilities/constants.dart';
 
 class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
   double durationPassed = 0;
   double transitionDuration = 2.0;
+
+  int numberOfLives = 5;
 
   /// Center each circle at the same point on the x-axis
   static const circleXCoordinate = 500.0;
@@ -88,7 +90,8 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
       fireSpriteFile,
       iceSpriteFile,
       leftArrowFile,
-      rightArrowFile
+      rightArrowFile,
+      catMovementFile,
     ]);
 
     final outerCircle = CircleComponent(radius: radiusSteps.last);
@@ -282,5 +285,16 @@ class TunnelGame extends FlameGame with KeyboardEvents, HasCollisionDetection {
 
     _powerUps.remove(powerUp);
     remove(powerUp);
+  }
+
+  void looseLifeBecauseOfObstacle(Obstacle obstacle) {
+    numberOfLives--;
+
+    _obstacles.remove(obstacle);
+    remove(obstacle);
+
+    if (numberOfLives == 0) {
+      debugPrint('It is all over, I have died');
+    }
   }
 }
