@@ -13,7 +13,7 @@ enum PowerUpType { fire, ice }
 class PowerUp extends SpriteAnimationComponent with CollisionCallbacks {
   final RectangleHitbox _hitBox =
       RectangleHitbox(collisionType: CollisionType.inactive);
-  static const frameInterval = 0.1;
+  static const frameInterval = 0.07;
 
   PowerUp({
     required Vector2 initialCenterOfRotation,
